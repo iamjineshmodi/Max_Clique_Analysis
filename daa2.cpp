@@ -2,158 +2,251 @@
 using namespace std;
 using namespace std::chrono;
 
-ofstream outfile("output.txt");
+struct ReportStats
+{
+    int largestCliqueSize = 0;
+    int totalMaximalCliques = 0;
+    unordered_map<int, int> cliqueDistribution;
+};
 
-
-template<typename T>
-void Print(const set<T>& s) {
-    cout << "{";
+void PrintSet(ofstream& outfile, const unordered_set<int>& s)
+{
+    outfile << "[";
     bool first = true;
-    for(const auto& element : s) {
-        if (!first) {
-            cout << ", ";
+    for(const auto& element : s)
+    {
+        if(!first)
+        {
+            outfile << ", ";
         }
-        cout << element;  // No need to adjust indexing
+        outfile << element;
         first = false;
     }
-    cout << "}" << endl;
+    outfile << "]";
 }
 
-void BronKerbosch(set<int>& R, set<int>& P, set<int>& X, const vector<set<int>>& adj) {
-    if(P.empty() && X.empty()) {
-        Print(R);
-        
+void BronKerbosch(unordered_set<int>& R, unordered_set<int>& P, unordered_set<int>& X, const vector<vector<int>>& adjList, const unordered_map<int, int>& vertexToIndex, ReportStats& stats, ofstream& outfile)
+{
+    if(P.empty() && X.empty())
+    {
+        stats.totalMaximalCliques++;
+        int cliqueSize = R.size();
+        stats.largestCliqueSize = max(stats.largestCliqueSize, cliqueSize);
+        stats.cliqueDistribution[cliqueSize]++;
+        PrintSet(outfile, R);
+        outfile << endl;
         return;
     }
-
     int pivot = -1;
-    size_t max_connections = 0;
-    for(int u : P) {
+    size_t maxConnections = 0;
+    for(int u : P)
+    {
         size_t connections = 0;
-        for(int v : P) {
-            if(adj[u].count(v)) {
+        int uIdx = vertexToIndex.at(u);
+        for(int v : P)
+        {
+            int vIdx = vertexToIndex.at(v);
+            if(binary_search(adjList[uIdx].begin(), adjList[uIdx].end(), v))
+            {
                 connections++;
             }
         }
-        if(connections > max_connections) {
-            max_connections = connections;
+        if(connections > maxConnections)
+        {
+            maxConnections = connections;
             pivot = u;
         }
     }
-
-    set<int> Pcopy = P;
-    if(pivot != -1) {
-        for(int v : adj[pivot]) {
-            Pcopy.erase(v);
+    unordered_set<int> Pcopy;
+    if(pivot != -1)
+    {
+        int pivotIdx = vertexToIndex.at(pivot);
+        for(int v : P)
+        {
+            if(!binary_search(adjList[pivotIdx].begin(), adjList[pivotIdx].end(), v))
+            {
+                Pcopy.insert(v);
+            }
         }
     }
-
-    for(int v : Pcopy) {
-        set<int> newR = R;
+    else
+    {
+        Pcopy = P;
+    }
+    for(int v : Pcopy)
+    {
+        int vIdx = vertexToIndex.at(v);
+        unordered_set<int> newR = R;
         newR.insert(v);
-        set<int> newP, newX;
-        
-        for(int w : P) {
-            if(adj[v].count(w)) {
+        unordered_set<int> newP, newX;
+        for(int w : P)
+        {
+            if(binary_search(adjList[vIdx].begin(), adjList[vIdx].end(), w))
+            {
                 newP.insert(w);
             }
         }
-        for(int w : X) {
-            if(adj[v].count(w)) {
+        for(int w : X)
+        {
+            if(binary_search(adjList[vIdx].begin(), adjList[vIdx].end(), w))
+            {
                 newX.insert(w);
             }
         }
-        
-        BronKerbosch(newR, newP, newX, adj);
+        BronKerbosch(newR, newP, newX, adjList, vertexToIndex, stats, outfile);
         P.erase(v);
         X.insert(v);
     }
 }
 
-void BronKerboschDegeneracy(int n, const vector<set<int>>& adj) {
-    if(n == 0) {
+void BronKerboschDegeneracy(const unordered_set<int>& vertices, const vector<vector<int>>& adjList, const unordered_map<int, int>& vertexToIndex, const vector<int>& indexToVertex, ReportStats& stats, ofstream& outfile)
+{
+    if(vertices.empty())
+    {
         return;
     }
-
-        cout << "Maximal cliques:" << endl;
-        
-    vector<int> order(n + 1);  // 1-based indexing
-    vector<int> degree(n + 1);
-    set<int> P, X;
-    
-    for(int i = 1; i <= n; i++) {  // 1-based loop
-        P.insert(i);
-        degree[i] = adj[i].size();
+    int n = vertices.size();
+    vector<int> degree(n);
+    vector<bool> visited(n, false);
+    for(int i=0; i<n; i++)
+    {
+        int v = indexToVertex[i];
+        degree[i] = adjList[vertexToIndex.at(v)].size();
     }
-
-    vector<bool> visited(n + 1, false);  // 1-based indexing
-    for(int i = 1; i <= n; i++) {  // 1-based loop
-        int min_degree_node = -1;
-        for(int j = 1; j <= n; j++) {  // 1-based loop
-            if(!visited[j] && (min_degree_node == -1 || degree[j] < degree[min_degree_node])) {
-                min_degree_node = j;
+    vector<int> order;
+    order.reserve(n);
+    for(int i=0; i<n; i++)
+    {
+        int minDegreeNode = -1;
+        for(int j=0; j<n; j++)
+        {
+            if(!visited[j] && (minDegreeNode == -1 || degree[j] < degree[minDegreeNode]))
+            {
+                minDegreeNode = j;
             }
         }
-        order[i] = min_degree_node;
-        visited[min_degree_node] = true;
-        for(int neighbor : adj[min_degree_node]) {
-            if(!visited[neighbor]) {
-                degree[neighbor]--;
+        order.push_back(indexToVertex[minDegreeNode]);
+        visited[minDegreeNode] = true;
+        for(int neighbor : adjList[minDegreeNode])
+        {
+            int neighborIdx = vertexToIndex.find(neighbor) != vertexToIndex.end() ? vertexToIndex.at(neighbor) : -1;
+            if(neighborIdx != -1 && !visited[neighborIdx])
+            {
+                degree[neighborIdx]--;
             }
         }
     }
+    unordered_set<int> P(vertices.begin(), vertices.end());
+    unordered_set<int> X;
 
-    for(int i = 1; i <= n; i++) {  // 1-based loop
-        int v = order[i];
-        set<int> Pv, Xv;
-        for(int w : adj[v]) {
-            if(P.count(w)) {
+    int i3 = 1;
+    for(int v : order)
+    {
+        int vIdx = vertexToIndex.at(v);
+        unordered_set<int> Pv, Xv;
+        for(int w : adjList[vIdx])
+        {
+            if(P.count(w))
+            {
                 Pv.insert(w);
             }
-            if(X.count(w)) {
+            if(X.count(w))
+            {
                 Xv.insert(w);
             }
         }
-        set<int> R = {v};
-        BronKerbosch(R, Pv, Xv, adj);
+        cout << "Bron-kerBosch for node " << i3++ << endl;
+        unordered_set<int> R = {v};
+        BronKerbosch(R, Pv, Xv, adjList, vertexToIndex, stats, outfile);
         P.erase(v);
         X.insert(v);
     }
 }
 
-int main() {
-    ifstream infile("input.txt");
-    if(!infile) {
-        cerr << "Error opening input.txt" << endl;
-        return 1;
+void generateReport(const ReportStats& stats, ofstream& outfile, long long execTime)
+{
+    cout << "=== MAXIMAL CLIQUE ANALYSIS REPORT ===" << endl;
+    cout << "1. Largest size of clique: " << stats.largestCliqueSize << endl;
+    cout << "2. Total number of maximal cliques: " << stats.totalMaximalCliques << endl;
+    cout << "3. Execution time: " << execTime << " ms" << endl;
+    cout << "4. Distribution of different size cliques:" << endl;
+    vector<pair<int, int>> sortedDist(stats.cliqueDistribution.begin(), stats.cliqueDistribution.end());
+    sort(sortedDist.begin(), sortedDist.end());
+    for(const auto& element : sortedDist)
+    {
+        int size = element.first, count = element.second;
+        cout << "   Size " << size << ": " << count << " cliques" << endl;
     }
+    outfile << "\n=== MAXIMAL CLIQUE ANALYSIS REPORT ===" << endl;
+    outfile << "1. Largest size of clique: " << stats.largestCliqueSize << endl;
+    outfile << "2. Total number of maximal cliques: " << stats.totalMaximalCliques << endl;
+    outfile << "3. Execution time: " << execTime << " ms" << endl;
+    outfile << "4. Distribution of different size cliques:" << endl;
+    for(const auto& element : sortedDist)
+    {
+        int size = element.first, count = element.second;
+        outfile << "   Size " << size << ": " << count << " cliques" << endl;
+    }
+}
 
+int main()
+{
+    ifstream infile("as-skitter.txt");
+    ofstream outfile("output_as-skitter.txt");
     int n, e;
     infile >> n >> e;
-    
-    if(n < 0 || e < 0 || e > n * (n-1) / 2) {
-        cout << "Invalid input" << endl;
-        return 1;
-    }
-
-    vector<set<int>> adj(n + 1);  // 1-based indexing
-    for(int i = 0; i < e; i++) {
+    unordered_set<int> vertices;
+    unordered_map<int, int> vertexToIndex;
+    vector<int> indexToVertex;
+    vector<vector<int>> adjList;
+    vector<pair<int, int>> edges;
+    edges.reserve(e);
+    for(int i=0; i<e; i++)
+    {
         int u, v;
         infile >> u >> v;
-        if(u < 1 || u > n || v < 1 || v > n || u == v) {
-            cout << "Invalid edge" << endl;
+        cout << "Reading edge " << i << endl;
+        if(u == v)
+        {
+            cerr << "Invalid edge: Self-loop detected" << endl;
             return 1;
         }
-        adj[u].insert(v);
-        adj[v].insert(u);
+        edges.push_back({u, v});
+        vertices.insert(u);
+        vertices.insert(v);
+    }
+    int index = 0;
+    for(int v : vertices)
+    {
+        vertexToIndex[v] = index;
+        cout << "Pushing vertex " << index+1 << endl;
+        indexToVertex.push_back(v);
+        index++;
+    }
+    int i1=0;
+    adjList.resize(vertices.size());
+    for(const auto& edge : edges)
+    {
+        int u = edge.first, v = edge.second;
+        int uIdx = vertexToIndex[u];
+        int vIdx = vertexToIndex[v];
+        cout << "Adding edge to adjlist " << i1++ << endl;
+        adjList[uIdx].push_back(v);
+        adjList[vIdx].push_back(u);
+    }
+    int i2=0;
+    for(auto& neighbors : adjList)
+    {
+        cout << "Sorting adjlist " << i2++ << endl;
+        sort(neighbors.begin(), neighbors.end());
     }
 
-    
+    ReportStats stats;
     auto start = high_resolution_clock::now();
-    BronKerboschDegeneracy(n, adj);
+    BronKerboschDegeneracy(vertices, adjList, vertexToIndex, indexToVertex, stats, outfile);
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start);
-    cout << "Execution time: " << duration.count() << "ms" << endl;
-
+    generateReport(stats, outfile, duration.count());
+    outfile.close();
     return 0;
 }
