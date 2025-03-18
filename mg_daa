@@ -252,7 +252,7 @@ void generateReport(const ReportStats &stats, ofstream &outfile, long long durat
 
 int main()
 {
-    ifstream infile("input.txt");
+    ifstream infile("input1.txt");
     ofstream outfile("output2.txt");
     int n, e;
     infile >> n >> e;
