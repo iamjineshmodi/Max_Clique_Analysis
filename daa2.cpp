@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 using namespace std::chrono;
+using namespace std::chrono;
 
 struct ReportStats
 {
@@ -126,6 +127,7 @@ void BronKerboschDegeneracy(const unordered_set<int>& vertices, const vector<vec
             }
         }
         order.push_back(indexToVertex[minDegreeNode]);
+        // cout << "Order " << i << endl;
         visited[minDegreeNode] = true;
         for(int neighbor : adjList[minDegreeNode])
         {
@@ -155,7 +157,7 @@ void BronKerboschDegeneracy(const unordered_set<int>& vertices, const vector<vec
                 Xv.insert(w);
             }
         }
-        cout << "Bron-kerBosch for node " << i3++ << endl;
+        // cout << "Bron-kerBosch for node " << i3++ << endl;
         unordered_set<int> R = {v};
         BronKerbosch(R, Pv, Xv, adjList, vertexToIndex, stats, outfile);
         P.erase(v);
@@ -191,6 +193,9 @@ void generateReport(const ReportStats& stats, ofstream& outfile, long long execT
 
 int main()
 {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
     ifstream infile("as-skitter.txt");
     ofstream outfile("output_as-skitter.txt");
     int n, e;
@@ -205,7 +210,7 @@ int main()
     {
         int u, v;
         infile >> u >> v;
-        cout << "Reading edge " << i << endl;
+        // cout << "Reading edge " << i << endl;
         if(u == v)
         {
             cerr << "Invalid edge: Self-loop detected" << endl;
@@ -219,25 +224,25 @@ int main()
     for(int v : vertices)
     {
         vertexToIndex[v] = index;
-        cout << "Pushing vertex " << index+1 << endl;
+        // cout << "Pushing vertex " << index+1 << endl;
         indexToVertex.push_back(v);
         index++;
     }
-    int i1=0;
+    int i1=1;
     adjList.resize(vertices.size());
     for(const auto& edge : edges)
     {
         int u = edge.first, v = edge.second;
         int uIdx = vertexToIndex[u];
         int vIdx = vertexToIndex[v];
-        cout << "Adding edge to adjlist " << i1++ << endl;
+        // cout << "Adding edge to adjlist " << i1++ << endl;
         adjList[uIdx].push_back(v);
         adjList[vIdx].push_back(u);
     }
-    int i2=0;
+    int i2=1;
     for(auto& neighbors : adjList)
     {
-        cout << "Sorting adjlist " << i2++ << endl;
+        // cout << "Sorting adjlist " << i2++ << endl;
         sort(neighbors.begin(), neighbors.end());
     }
 
