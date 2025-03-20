@@ -1,8 +1,8 @@
-#include "bits/stdc++.h"
+#include <bits/stdc++.h>
 using namespace std;
 
-static const int MAXN = 2000000;
-int n; // Number of vertices
+static const int MAXN = 2000000; // Adjust as needed
+int n;                           // Number of vertices
 vector<vector<int>> adjacencyList;
 vector<int> S, T; // Global arrays for S and T
 bool FLAG;
@@ -163,8 +163,8 @@ void UPDATE(int i, set<int> &C)
     sort(cMinusNiVec.begin(), cMinusNiVec.end());
 
     // Lexico test
-    int p = (int)cMinusNiVec.size();
-    for (int k = 0; k < p; k++)
+    int p = (int)cMinusNiVec.size() - 1;
+    for (int k = 0; k <= p; k++)
     {
         int j_k = cMinusNiVec[k];
         set<int> Nxjk(adjacencyList[j_k].begin(), adjacencyList[j_k].end());
@@ -179,7 +179,7 @@ void UPDATE(int i, set<int> &C)
                 else
                 {
                     int first = -1;
-                    for (int m = 0; m < p; m++)
+                    for (int m = 0; m <= p; m++)
                     {
                         if (y < cMinusNiVec[m])
                         {
@@ -189,7 +189,7 @@ void UPDATE(int i, set<int> &C)
                     }
                     if (first != -1 && k == first)
                     {
-                        if ((S[y] + k) == p)
+                        if ((S[y] + k - 1) == p)
                         {
                             if (y >= (k - 1 > 0 ? cMinusNiVec[k - 1] : 0))
                             {
@@ -201,12 +201,14 @@ void UPDATE(int i, set<int> &C)
                 }
             }
         }
+        if (!FLAG)
+            break;
     }
 
     // Case S[y] = 0
+    int j_p = (p > 0 ? cMinusNiVec[p] : 0);
     if (!CintersectNi.empty())
     {
-        int j_p = (p > 0 ? cMinusNiVec[p] : 0);
         for (int y = 1; y <= n; y++)
         {
             if ((C.find(y) == C.end()) && y != i && y < i)
@@ -219,14 +221,13 @@ void UPDATE(int i, set<int> &C)
                         FLAG = false;
                         break;
                     }
-                    else if (j_p < i - 1)
-                    {
-                        FLAG = false;
-                        break;
-                    }
                 }
             }
         }
+    }
+    else if (j_p < i - 1)
+    {
+        FLAG = false;
     }
 
     // Reinitialize S[y] and T[y]
@@ -284,13 +285,10 @@ int main()
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     string dataset_name;
-    // cout << "working";
     cin >> dataset_name;
     ifstream infile(dataset_name + ".txt");
-
     infile >> n;
 
-    // cout << "working";
     // Read edges
     int m;
     infile >> m;
@@ -307,8 +305,6 @@ int main()
         uniqueVertices.insert(v);
         edges.push_back({u, v});
     }
-
-    cout << "edges";
 
     // Create mapping from original IDs to consecutive indices starting from 1
     vertexMap.push_back(0); // Dummy value at index 0
