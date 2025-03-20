@@ -164,7 +164,11 @@ int main()
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
-    ifstream infile("as-skitter.txt");
+    string filename;
+    cin >> filename;
+    filename += ".txt";
+    ifstream infile(filename);
+    cout << "Reading input file " << filename << endl;
     int n, e;
     infile >> n >> e;
     unordered_set<int> vertices;
