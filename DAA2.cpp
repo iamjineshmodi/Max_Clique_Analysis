@@ -217,19 +217,27 @@ int main()
     
     vector<int> order;
     order.reserve(n);
-    vector<int> sortedVertices(n);
+    // vector<int> sortedVertices(n);
+    // for(int i=0; i<n; i++)
+    // {
+    //     sortedVertices[i] = i;
+    // }
+    unordered_map<int, vector<int>> degreeMap;
     for(int i=0; i<n; i++)
     {
-        sortedVertices[i] = i;
+        degreeMap[degree[i]].push_back(i);
     }
-    sort(sortedVertices.begin(), sortedVertices.end(), [&](int a, int b){
-        return degree[a] < degree[b];
-    });
-    for(int idx : sortedVertices)
+    for(int i=0; i<n; i++)
     {
-        order.push_back(indexToVertex[idx]);
+        for(int idx : degreeMap[i])
+        {
+            order.push_back(indexToVertex[idx]);
+        }
     }
-    // order.reserve(n);
+    // for(int idx : sortedVertices)
+    // {
+    //     order.push_back(indexToVertex[idx]);
+    // }
     // vector<bool> visited(n, false);
     // for(int i=0; i<n; i++)
     // {
