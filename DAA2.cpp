@@ -9,6 +9,58 @@ struct ReportStats
     unordered_map<int, int> cliqueDistribution;
 };
 
+int n;
+vector<unordered_set<int>> adj;
+
+vector<int> computeDegeneracyOrder()
+{
+    vector<int> order;
+    order.reserve(n);
+    vector<int> degree(n);
+    int maxDegree = 0;
+    for(int i=0; i<n; i++)
+    {
+        degree[i] = adj[i].size();
+        maxDegree = max(maxDegree, degree[i]);
+    }
+    vector<vector<int>> buckets(maxDegree + 1);
+    for(int i=0; i<n; i++)
+    {
+        buckets[degree[i]].push_back(i);
+    }
+    vector<bool> processed(n, false);
+    int processedCount = 0;
+    for(int d=0; d <= maxDegree && processedCount < n; d++)
+    {
+        while(!buckets[d].empty())
+        {
+            int v = buckets[d].back();
+            buckets[d].pop_back();
+            if(processed[v] || degree[v] != d)
+            {
+                continue;
+            }
+            order.push_back(v);
+            processed[v] = true;
+            processedCount++;
+            for(int u : adj[v])
+            {
+                if(!processed[u] && degree[u] > d)
+                {
+                    buckets[degree[u]].erase(
+                        remove(buckets[degree[u]].begin(), buckets[degree[u]].end(), u),
+                        buckets[degree[u]].end()
+                    );
+                    degree[u]--;
+                    buckets[degree[u]].push_back(u);
+                }
+            }
+        }
+    }
+    
+    return order;
+}
+
 void BronKerboschDegeneracy(const unordered_set<int>& vertices, const vector<unordered_set<int>>& adjList, const unordered_map<int, int>& vertexToIndex, const vector<int>& order, ReportStats& stats)
 {
     if(vertices.empty())
@@ -169,7 +221,7 @@ int main()
     filename += ".txt";
     ifstream infile(filename);
     cout << "Reading input file " << filename << endl;
-    int n, e;
+    int e;
     infile >> n >> e;
     unordered_set<int> vertices;
     unordered_map<int, int> vertexToIndex;
@@ -200,6 +252,8 @@ int main()
         index++;
     }
     cout << "Created vertex index mapping" << endl;
+    // Initialize adj list for computeDegeneracyOrder
+    adj.resize(n);
     vector<int> degree(n, 0);
     vector<unordered_set<int>> adjList(n);
     for(int i=0; i<e; i++)
@@ -209,63 +263,27 @@ int main()
         int vIdx = vertexToIndex[v];
         adjList[uIdx].insert(v);
         adjList[vIdx].insert(u);
+        
+        // Also fill the global adj list for computeDegeneracyOrder
+        adj[uIdx].insert(vIdx);
+        adj[vIdx].insert(uIdx);
+        
         degree[uIdx]++;
         degree[vIdx]++;
         // cout << "Adding edge " << i+1 << endl;
     }
     cout << "Created adjacency list" << endl;
-    
-    vector<int> order;
-    order.reserve(n);
-    // vector<int> sortedVertices(n);
-    // for(int i=0; i<n; i++)
-    // {
-    //     sortedVertices[i] = i;
-    // }
-    unordered_map<int, vector<int>> degreeMap;
-    for(int i=0; i<n; i++)
+    vector<int> order = computeDegeneracyOrder();
+    vector<int> orderWithOriginalLabels;
+    for(int idx : order)
     {
-        degreeMap[degree[i]].push_back(i);
+        orderWithOriginalLabels.push_back(indexToVertex[idx]);
     }
-    for(int i=0; i<n; i++)
-    {
-        for(int idx : degreeMap[i])
-        {
-            order.push_back(indexToVertex[idx]);
-        }
-    }
-    // for(int idx : sortedVertices)
-    // {
-    //     order.push_back(indexToVertex[idx]);
-    // }
-    // vector<bool> visited(n, false);
-    // for(int i=0; i<n; i++)
-    // {
-    //     int minDegreeNode = -1;
-    //     for(int j=0; j<n; j++)
-    //     {
-    //         if(!visited[j] && (minDegreeNode == -1 || degree[j] < degree[minDegreeNode]))
-    //         {
-    //             minDegreeNode = j;
-    //         }
-    //     }
-    //     order.push_back(indexToVertex[minDegreeNode]);
-    //     // cout << "Order " << i+1 << endl;
-    //     visited[minDegreeNode] = true;
-    //     for (int neighbor : adjList[minDegreeNode])
-    //     {
-    //         int neighborIdx = vertexToIndex.find(neighbor) != vertexToIndex.end() ? vertexToIndex.at(neighbor) : -1;
-    //         if(neighborIdx != -1 && !visited[neighborIdx])
-    //         {
-    //             degree[neighborIdx]--;
-    //         }
-    //     }
-    // }
     cout << "Created degeneracy ordering" << endl;
     
     ReportStats stats;
     auto start = high_resolution_clock::now();
-    BronKerboschDegeneracy(vertices, adjList, vertexToIndex, order, stats);
+    BronKerboschDegeneracy(vertices, adjList, vertexToIndex, orderWithOriginalLabels, stats);
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start);
     generateReport(stats, duration.count());
