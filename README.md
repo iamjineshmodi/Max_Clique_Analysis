@@ -9,28 +9,36 @@ This repository contains implementations of three different maximal clique enume
 All implementations are in C++ for optimal performance and consistent comparison of runtime.
 
 ## Execution Instructions
-1. Ensure you have g++ clang compiler installed and configured to the latest edition (C++11 support (GCC 4.8+ or Clang 3.3+))
-2. Run the following:
+
+### Prerequisites
+- C++ compiler with C++11 support (GCC 4.8+ or Clang 3.3+)
+
+### Building the Project
+1. Compile the source code with optimizations:
 ```bash
-    g++ -O3 -march=native -flto -funroll-loops -ffast-math -o daa1 daa1.cpp
+g++ -O3 -march=native -flto -funroll-loops -ffast-math -o daa1 daa1.cpp
 ```
-3. Then write the inital-name of the dataset, without the .txt suffix
-    Examples:
+
+2. Run the program by providing the dataset name without the .txt suffix:
 ```bash
-    email-Enron
+./daa1 email-Enron
 ```
 
 ## Dataset Preparation
-1. Download the Datasets from the following Links and save them as .txt files:
-     1. https://snap.stanford.edu/data/email-Enron.html
-     2. https://snap.stanford.edu/data/as-Skitter.html
-     3. https://snap.stanford.edu/data/wiki-Vote.html
-2. Remove the first line of the comment, and add the line
-   ```bash 
-    num_of_nodes num_of_edges
+
+1. Download the datasets from the following links and save them as .txt files:
+   - https://snap.stanford.edu/data/email-Enron.html
+   - https://snap.stanford.edu/data/as-Skitter.html
+   - https://snap.stanford.edu/data/wiki-Vote.html
+
+2. Remove the comment lines at the beginning of each file
+
+3. Add a header line with the number of nodes and edges:
    ```
-   
-### Input DataSet Format
+   num_of_nodes num_of_edges
+   ```
+
+### Input File Format
 The program accepts graph files in the following edge list format:
 ```
 num_of_nodes num_of_edges
@@ -67,7 +75,6 @@ Key features:
 - Exploits graph arboricity for improved performance
 - Efficient for graphs with low arboricity
 - Theoretical complexity related to graph arboricity
-  
 
 ## Individual Contributions
 
@@ -75,7 +82,7 @@ Key features:
   - Tomita et al. algorithm: Om Patil, Kartik Maheshwari
   - BronkerboschDegeneracy algorithm: Kartik Maheshwari, Karan Sethia
   - Arboricity-based algorithm: Meghaditya Giri, Jinesh Modi
-
+  
 - **Documentation**:
   - Implementation documentation: Jinesh Modi
   - Results analysis and reporting: Karan Sethia
