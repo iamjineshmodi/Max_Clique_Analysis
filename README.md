@@ -10,10 +10,14 @@ All implementations are in C++ for optimal performance and consistent comparison
 
 ## Execution Instructions
 1. Ensure you have g++ clang compiler installed and configured to the latest edition (C++11 support (GCC 4.8+ or Clang 3.3+))
-
-3. Run the following:
+2. Run the following:
 ```bash
     g++ -O3 -march=native -flto -funroll-loops -ffast-math -o daa1 daa1.cpp
+```
+3. Then write the inital-name of the dataset, without the .txt suffix
+    Examples:
+```bash
+    email-Enron
 ```
 
 ## Dataset Preparation
@@ -24,7 +28,8 @@ All implementations are in C++ for optimal performance and consistent comparison
 2. Remove the first line of the comment, and add the line
    ```bash 
     num_of_nodes num_of_edges
-   ```  
+   ```
+   
 ### Input DataSet Format
 The program accepts graph files in the following edge list format:
 ```
@@ -62,42 +67,19 @@ Key features:
 - Exploits graph arboricity for improved performance
 - Efficient for graphs with low arboricity
 - Theoretical complexity related to graph arboricity
-
-## Results and Observations
-
-The performance comparison of the three algorithms is summarized below:
-
-
-| Dataset | Tomita et al. | BronkerboschDegeneracy | Arboricity-based |
-|---------|---------------|------------------------|------------------|
-| graph1  | 0.05s         | 0.04s                  | 0.06s            |
-| graph2  | 2.35s         | 1.78s                  | 2.10s            |
-| graph3  | 18.25s        | 12.47s                 | 15.82s           |
-
-
-Observations:
-- The BronkerboschDegeneracy algorithm consistently performs best across all test datasets
-- The Arboricity-based algorithm shows competitive performance for graphs with low arboricity
-- All algorithms exhibit exponential scaling with graph density
-- Memory usage is similar across implementations
-
+  
 
 ## Individual Contributions
 
 - **Algorithm Implementation**:
-  - Tomita et al. algorithm: [Your Name]
-  - BronkerboschDegeneracy algorithm: [Your Name]
-  - Arboricity-based algorithm: [Your Name]
-  
-- **Testing and Validation**:
-  - Test framework setup: [Your Name]
-  - Correctness verification: [Your Name]
-  - Performance benchmarking: [Your Name]
+  - Tomita et al. algorithm: Om Patil, Kartik Maheshwari
+  - BronkerboschDegeneracy algorithm: Kartik Maheshwari, Karan Sethia
+  - Arboricity-based algorithm: Meghaditya Giri, Jinesh Modi
 
 - **Documentation**:
-  - Implementation documentation: [Your Name]
-  - Results analysis and reporting: [Your Name]
-  - Project webpage creation: [Your Name]
+  - Implementation documentation: Jinesh Modi
+  - Results analysis and reporting: Karan Sethia
+  - Project webpage creation: Om Patil
 
 ## References
 
